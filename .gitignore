@@ -1,0 +1,42 @@
+# ===== Thư viện & build =====
+node_modules/
+dist/
+dist-ssr/
+
+# ===== Biến môi trường =====
+# Chỉ bỏ qua file .env thật. .env.example và XuanLoc-FE/.env.production (không chứa secret) vẫn được commit
+.env
+*.local
+
+# ===== File sinh tự động / dữ liệu lúc chạy =====
+XuanLoc-BE/src/common/prisma/generated/
+XuanLoc-BE/uploads/avatars/*
+
+# ===== Secret - không bao giờ commit =====
+*.pem
+*.key
+*.crt
+*accessKeys*.csv
+
+# ===== Terraform =====
+# Giữ lại .terraform.lock.hcl để cố định phiên bản provider
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+
+# ===== Ansible =====
+*.retry
+.vault_pass*
+
+# ===== Log =====
+logs/
+*.log
+
+# ===== Công cụ / hệ điều hành =====
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

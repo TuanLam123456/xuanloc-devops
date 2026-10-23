@@ -1,0 +1,44 @@
+import express from "express";
+import authRouter from "./auth.router.js";
+import userRouter from "./user.router.js";
+import courseRouter from "./course.router.js";
+import classRouter from "./class.router.js";
+import scheduleRouter from "./schedule.router.js";
+import enrollmentRouter from "./enrollment.router.js";
+import attendanceRouter from "./attendance.router.js";
+import lessonRouter from "./lesson.router.js";
+import gradeRouter from "./grade.router.js";
+import registrationRouter from "./courseRegistration.router.js";
+import roomRouter from "./room.router.js";
+import dashboardRouter from "./dashboard.router.js";
+import payrollRouter from "./payroll.router.js";
+import waitlistRouter from "./waitlist.router.js";
+import reviewRouter from "./review.router.js";
+import auditLogRouter from "./auditLog.router.js";
+import examRouter from "./exam.router.js";
+import certificateRouter from "./certificate.router.js";
+import voucherRouter from "./voucher.router.js";
+
+const rootRouter = express.Router();
+
+rootRouter.use("/auth", authRouter);
+rootRouter.use("/users", userRouter);
+rootRouter.use("/courses", courseRouter);
+rootRouter.use("/classes", classRouter);
+rootRouter.use("/schedules", scheduleRouter);
+rootRouter.use("/enrollments", enrollmentRouter);
+rootRouter.use("/attendance", attendanceRouter);
+rootRouter.use("/lessons", lessonRouter);
+rootRouter.use("/grades", gradeRouter);
+rootRouter.use("/course-registrations", registrationRouter);
+rootRouter.use("/rooms", roomRouter);
+rootRouter.use("/dashboard", dashboardRouter);
+rootRouter.use("/payroll", payrollRouter);
+rootRouter.use("/waitlist", waitlistRouter);
+rootRouter.use("/reviews", reviewRouter);
+rootRouter.use("/audit-logs", auditLogRouter);
+rootRouter.use("/exams", examRouter);
+rootRouter.use("/certificates", certificateRouter);
+rootRouter.use("/vouchers", voucherRouter);
+
+export default rootRouter;

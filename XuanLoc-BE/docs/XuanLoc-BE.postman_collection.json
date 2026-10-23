@@ -1,0 +1,2105 @@
+{
+  "info": {
+    "name": "XuanLoc-BE API",
+    "description": "Bộ sưu tập API của Trung tâm ngoại ngữ Xuân Lộc (XuanLoc-BE). Auth dùng cookie httpOnly (accessToken/refreshToken) do POST /auth/login set - bật 'Automatically follow redirects' và cookie jar mặc định của Postman là đủ, không cần Bearer token. Gọi Login trước, các request sau tự động kèm cookie.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3069/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Quyền truy cập: public",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@xuanloc.edu.vn\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh-token"
+              ]
+            },
+            "description": "Quyền truy cập: public (dùng cookie refreshToken)"
+          }
+        },
+        {
+          "name": "Get Me (thông tin đang đăng nhập)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Quyền truy cập: protect"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Quyền truy cập: protect"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "forgot-password"
+              ]
+            },
+            "description": "Quyền truy cập: public",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@xuanloc.edu.vn\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reset Password With Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/reset-password-code",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "reset-password-code"
+              ]
+            },
+            "description": "Quyền truy cập: public",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@xuanloc.edu.vn\",\n  \"codeChangePass\": \"123456\",\n  \"newPassword\": \"newpass123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Nguyen Van Test\",\n  \"email\": \"test@xuanloc.edu.vn\",\n  \"password\": \"123456\",\n  \"phone\": \"0900000000\",\n  \"role\": \"student\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": false
+                },
+                {
+                  "key": "role",
+                  "value": "student",
+                  "disabled": true
+                },
+                {
+                  "key": "keyword",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Export Users (Excel)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "student",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Get User By Id (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Update User (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ten moi\",\n  \"phone\": \"0911111111\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Toggle User Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id",
+                "status"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"inactive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reset User Password (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id",
+                "reset-password"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete User (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Get My Student Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile/student",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "profile",
+                "student"
+              ]
+            },
+            "description": "Quyền truy cập: student"
+          }
+        },
+        {
+          "name": "Update My Student Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile/student",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "profile",
+                "student"
+              ]
+            },
+            "description": "Quyền truy cập: student",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"0912345678\",\n  \"dob\": \"2005-01-01\",\n  \"parent_name\": \"Tran Van A\",\n  \"parent_phone\": \"0900000001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get My Teacher Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile/teacher",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "profile",
+                "teacher"
+              ]
+            },
+            "description": "Quyền truy cập: teacher"
+          }
+        },
+        {
+          "name": "Update My Teacher Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile/teacher",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "profile",
+                "teacher"
+              ]
+            },
+            "description": "Quyền truy cập: teacher",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"IELTS\",\n  \"degree\": \"Thac si\",\n  \"bio\": \"...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Change My Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "change-password"
+              ]
+            },
+            "description": "Quyền truy cập: protect",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"123456\",\n  \"newPassword\": \"newpass123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Avatar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "avatar"
+              ]
+            },
+            "description": "Quyền truy cập: protect",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Get Courses (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/courses/public",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                "public"
+              ]
+            },
+            "description": "Quyền truy cập: public"
+          }
+        },
+        {
+          "name": "Get Course By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/courses/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: public"
+          }
+        },
+        {
+          "name": "Get All Courses (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": false
+                },
+                {
+                  "key": "keyword",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Create Course (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"NEW-COURSE\",\n  \"title\": \"Khoa hoc moi\",\n  \"tuition_fee\": 3000000,\n  \"duration_months\": 3,\n  \"description\": \"Mo ta\",\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Course (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Ten moi\",\n  \"tuition_fee\": 3500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Toggle Course Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/courses/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                ":id",
+                "status"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Course (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/courses/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Get Classes (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/public",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "public"
+              ],
+              "query": [
+                {
+                  "key": "course_id",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "upcoming",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: public"
+          }
+        },
+        {
+          "name": "Get My Taught Classes (Teacher)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/my-taught-classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                "my-taught-classes"
+              ]
+            },
+            "description": "Quyền truy cập: teacher"
+          }
+        },
+        {
+          "name": "Get All Classes (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": false
+                },
+                {
+                  "key": "course_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "teacher_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "keyword",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Create Class (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"teacher_id\": 2,\n  \"class_name\": \"IELTS-NEW\",\n  \"room\": \"Phòng 1\",\n  \"schedule_text\": \"Toi 2-4-6\",\n  \"start_date\": \"2026-10-01\",\n  \"status\": \"upcoming\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Class By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: public"
+          }
+        },
+        {
+          "name": "Update Class (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room\": \"Phòng 2\",\n  \"status\": \"ongoing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Class (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classes/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "classes",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
+        {
+          "name": "Get All Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rooms"
+              ]
+            },
+            "description": "Quyền truy cập: protect"
+          }
+        },
+        {
+          "name": "Create Room (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rooms"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Phòng 6\",\n  \"capacity\": 20,\n  \"note\": \"Co may chieu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Room (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rooms/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rooms",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 25,\n  \"note\": \"Da nang cap\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Toggle Room Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rooms/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rooms",
+                ":id",
+                "status"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schedules",
+      "item": [
+        {
+          "name": "Get My Schedule (Student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/my-schedule/student",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedules",
+                "my-schedule",
+                "student"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-09-01",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "2026-09-30",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: student"
+          }
+        },
+        {
+          "name": "Get My Schedule (Teacher)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/my-schedule/teacher",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedules",
+                "my-schedule",
+                "teacher"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-09-01",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "2026-09-30",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: teacher"
+          }
+        },
+        {
+          "name": "Create Schedule (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schedules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedules"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_id\": 1,\n  \"session_date\": \"2026-09-07\",\n  \"start_time\": \"18:00\",\n  \"end_time\": \"19:30\",\n  \"room\": \"Phòng 1\",\n  \"note\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Schedules By Class",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/class/:classId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedules",
+                "class",
+                ":classId"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-09-01",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "2026-09-30",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: public"
+          }
+        },
+        {
+          "name": "Update Schedule (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedules",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_time\": \"19:00\",\n  \"end_time\": \"20:30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Schedule (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schedules",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enrollments",
+      "item": [
+        {
+          "name": "Get My Enrollments (Student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/my-enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                "my-enrollments"
+              ]
+            },
+            "description": "Quyền truy cập: student"
+          }
+        },
+        {
+          "name": "Register Class (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                "register"
+              ]
+            },
+            "description": "Quyền truy cập: student",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Cash Payment (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/payments/cash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                "payments",
+                "cash"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enrollment_id\": 1,\n  \"amount_paid\": 2000000,\n  \"note\": \"Dot 1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Payments By Enrollment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/:enrollmentId/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                ":enrollmentId",
+                "payments"
+              ]
+            },
+            "description": "Quyền truy cập: protect (chủ sở hữu hoặc admin/teacher)"
+          }
+        },
+        {
+          "name": "Get Enrollment Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/:id/balance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                ":id",
+                "balance"
+              ]
+            },
+            "description": "Quyền truy cập: protect (chủ sở hữu hoặc admin/teacher)"
+          }
+        },
+        {
+          "name": "Get Debt Report (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/debt-report",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                "debt-report"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Export Debt Report (Excel, Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/debt-report/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                "debt-report",
+                "export"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Get All Enrollments (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "disabled": false
+                },
+                {
+                  "key": "class_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "student_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Create Enrollment Manually (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": 3,\n  \"class_id\": 2,\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Enrollment Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                ":id",
+                "status"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Enrollment (Admin, soft-delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/enrollments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "enrollments",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Get My Attendance (Student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/my-attendance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "attendance",
+                "my-attendance"
+              ],
+              "query": [
+                {
+                  "key": "class_id",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: student"
+          }
+        },
+        {
+          "name": "Save Batch Attendance (Teacher/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "attendance",
+                "batch"
+              ]
+            },
+            "description": "Quyền truy cập: teacher,admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_id\": 1,\n  \"attendance_date\": \"2026-09-07\",\n  \"attendance_list\": [\n    {\n      \"student_id\": 3,\n      \"status\": \"present\",\n      \"note\": \"\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get Attendance By Class And Date (Teacher/Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/class/:classId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "attendance",
+                "class",
+                ":classId"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-09-07",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Quyền truy cập: teacher,admin"
+          }
+        },
+        {
+          "name": "Update Attendance Record (Teacher/Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "attendance",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: teacher,admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"absent\",\n  \"note\": \"Xin nghi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lessons",
+      "item": [
+        {
+          "name": "Get Lessons By Course",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lessons/course/:courseId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lessons",
+                "course",
+                ":courseId"
+              ]
+            },
+            "description": "Quyền truy cập: public"
+          }
+        },
+        {
+          "name": "Get Class Lessons Progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lessons/class-progress/:classId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lessons",
+                "class-progress",
+                ":classId"
+              ]
+            },
+            "description": "Quyền truy cập: protect"
+          }
+        },
+        {
+          "name": "Create Lesson (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lessons",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lessons"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"lesson_number\": 10,\n  \"title\": \"Bai moi\",\n  \"description\": \"Mo ta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Class Lesson Status (Teacher/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lessons/update-progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lessons",
+                "update-progress"
+              ]
+            },
+            "description": "Quyền truy cập: teacher,admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_id\": 1,\n  \"lesson_id\": 1,\n  \"status\": \"completed\",\n  \"taught_date\": \"2026-09-07\",\n  \"homework_assigned\": \"Lam bai tap trang 10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Add Lesson Material (Teacher/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lessons/:lessonId/materials",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lessons",
+                ":lessonId",
+                "materials"
+              ]
+            },
+            "description": "Quyền truy cập: teacher,admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"file_title\": \"Slide buoi 1\",\n  \"file_url\": \"https://drive.google.com/...\",\n  \"file_type\": \"pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Lesson Material (Teacher/Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lessons/materials/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lessons",
+                "materials",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: teacher,admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grades",
+      "item": [
+        {
+          "name": "Get My Grades (Student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/grades/my-grades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "grades",
+                "my-grades"
+              ]
+            },
+            "description": "Quyền truy cập: student"
+          }
+        },
+        {
+          "name": "Get Grades By Enrollment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/grades/enrollment/:enrollmentId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "grades",
+                "enrollment",
+                ":enrollmentId"
+              ]
+            },
+            "description": "Quyền truy cập: protect (chủ sở hữu hoặc admin/teacher)"
+          }
+        },
+        {
+          "name": "Add Grade (Teacher/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/grades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "grades"
+              ]
+            },
+            "description": "Quyền truy cập: teacher,admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enrollment_id\": 1,\n  \"title\": \"Giua ky\",\n  \"score\": 8.5,\n  \"teacher_comment\": \"Tot\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Course Registrations (Tư vấn)",
+      "item": [
+        {
+          "name": "Create Registration (Public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/course-registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "course-registrations"
+              ]
+            },
+            "description": "Quyền truy cập: public",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": 1,\n  \"full_name\": \"Nguyen Van B\",\n  \"email\": \"b@example.com\",\n  \"phone\": \"0900000000\",\n  \"note\": \"Muon tu van\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get All Registrations (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/course-registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "course-registrations"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "disabled": true
+                },
+                {
+                  "key": "course_id",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Update Registration Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/course-registrations/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "course-registrations",
+                ":id",
+                "status"
+              ]
+            },
+            "description": "Quyền truy cập: admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\",\n  \"reject_reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Registration (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/course-registrations/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "course-registrations",
+                ":id"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Overview (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "overview"
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        },
+        {
+          "name": "Get Revenue Trend (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/revenue-trend",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "revenue-trend"
+              ],
+              "query": [
+                {
+                  "key": "months",
+                  "value": "6",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Quyền truy cập: admin"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Quyền truy cập: public"
+          }
+        }
+      ]
+    }
+  ]
+}

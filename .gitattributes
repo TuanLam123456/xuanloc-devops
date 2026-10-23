@@ -1,0 +1,28 @@
+# Git tự chuẩn hoá line ending cho file text
+* text=auto
+
+# File chạy trên Linux (server, container, CI) luôn dùng LF,
+# kể cả khi máy Windows bật core.autocrlf=true
+*.sh        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.conf      text eol=lf
+*.j2        text eol=lf
+*.tf        text eol=lf
+*.hcl       text eol=lf
+*.cfg       text eol=lf
+*.ini       text eol=lf
+.env*       text eol=lf
+Dockerfile  text eol=lf
+Jenkinsfile text eol=lf
+
+# File nhị phân
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary

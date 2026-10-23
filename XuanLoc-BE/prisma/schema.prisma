@@ -1,0 +1,480 @@
+generator client {
+  provider     = "prisma-client-js"
+  output       = "../src/common/prisma/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model attendance {
+  id              Int                @id @default(autoincrement())
+  class_id        Int
+  student_id      Int
+  attendance_date DateTime           @db.Date
+  status          attendance_status? @default(present)
+  note            String?            @db.VarChar(255)
+  created_at      DateTime?          @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?          @default(now()) @db.Timestamp(0)
+  classes         classes            @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "attendance_ibfk_1")
+  users           users              @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "attendance_ibfk_2")
+
+  @@unique([class_id, student_id, attendance_date], map: "unique_daily_attendance")
+  @@index([attendance_date], map: "idx_attendance_date")
+  @@index([student_id], map: "student_id")
+}
+
+model class_lessons {
+  id                Int                   @id @default(autoincrement())
+  class_id          Int
+  lesson_id         Int
+  taught_date       DateTime?             @db.Date
+  status            class_lessons_status? @default(pending)
+  homework_assigned String?               @db.Text
+  created_at        DateTime?             @default(now()) @db.Timestamp(0)
+  updated_at        DateTime?             @default(now()) @db.Timestamp(0)
+  classes           classes               @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "class_lessons_ibfk_1")
+  lessons           lessons               @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "class_lessons_ibfk_2")
+
+  @@unique([class_id, lesson_id], map: "unique_class_lesson")
+  @@index([lesson_id], map: "lesson_id")
+}
+
+model classes {
+  id              Int               @id @default(autoincrement())
+  course_id       Int
+  teacher_id      Int?
+  class_name      String            @db.VarChar(100)
+  room            String?           @default("Phòng 1") @db.VarChar(50)
+  schedule_text   String?           @db.VarChar(100)
+  start_date      DateTime?         @db.Date
+  status          classes_status?   @default(ongoing)
+  max_students    Int?
+  created_at      DateTime?         @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?         @default(now()) @db.Timestamp(0)
+  attendance      attendance[]
+  class_lessons   class_lessons[]
+  class_schedules class_schedules[]
+  courses         courses           @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "classes_ibfk_1")
+  users           users?            @relation(fields: [teacher_id], references: [id], onUpdate: NoAction, map: "classes_ibfk_2")
+  enrollments     enrollments[]
+  waitlist        waitlist[]
+  reviews         reviews[]
+
+  @@index([course_id], map: "course_id")
+  @@index([status], map: "idx_class_status")
+  @@index([teacher_id], map: "teacher_id")
+}
+
+model courses {
+  id                   Int                    @id @default(autoincrement())
+  code                 String                 @unique(map: "code") @db.VarChar(20)
+  title                String                 @db.VarChar(150)
+  description          String?                @db.Text
+  tuition_fee          Decimal                @default(0.00) @db.Decimal(10, 2)
+  duration_months      Int?                   @default(3)
+  is_active            Boolean?               @default(true)
+  created_at           DateTime?              @default(now()) @db.Timestamp(0)
+  updated_at           DateTime?              @default(now()) @db.Timestamp(0)
+  classes              classes[]
+  course_registrations course_registrations[]
+  lessons              lessons[]
+  exams                exams[]
+}
+
+model enrollments {
+  id         Int                 @id @default(autoincrement())
+  student_id Int
+  class_id   Int
+  status     enrollments_status? @default(active)
+  deleted_at DateTime?           @db.Timestamp(0)
+  created_at DateTime?           @default(now()) @db.Timestamp(0)
+  updated_at DateTime?           @default(now()) @db.Timestamp(0)
+  discount_amount Decimal?       @default(0.00) @db.Decimal(10, 2)
+  voucher_id Int?
+  users      users               @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "enrollments_ibfk_1")
+  classes    classes             @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "enrollments_ibfk_2")
+  vouchers   vouchers?           @relation(fields: [voucher_id], references: [id], onUpdate: NoAction, map: "fk_enrollment_voucher")
+  grades     grades[]
+  payments   payments[]
+  refunds    refunds[]
+  certificates certificates?
+
+  @@unique([student_id, class_id], map: "unique_student_class")
+  @@index([class_id], map: "class_id")
+}
+
+model grades {
+  id              Int         @id @default(autoincrement())
+  enrollment_id   Int
+  title           String      @db.VarChar(100)
+  score           Decimal     @db.Decimal(4, 2)
+  teacher_comment String?     @db.Text
+  created_at      DateTime?   @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?   @default(now()) @db.Timestamp(0)
+  enrollments     enrollments @relation(fields: [enrollment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "grades_ibfk_1")
+
+  @@index([enrollment_id], map: "enrollment_id")
+}
+
+model lesson_materials {
+  id         Int       @id @default(autoincrement())
+  lesson_id  Int
+  file_title String    @db.VarChar(150)
+  file_url   String    @db.VarChar(500)
+  file_type  String?   @db.VarChar(50)
+  file_size  Int?
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  lessons    lessons   @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lesson_materials_ibfk_1")
+
+  @@index([lesson_id], map: "lesson_id")
+}
+
+model lessons {
+  id               Int                @id @default(autoincrement())
+  course_id        Int
+  lesson_number    Int
+  title            String             @db.VarChar(150)
+  description      String?            @db.Text
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  updated_at       DateTime?          @default(now()) @db.Timestamp(0)
+  class_lessons    class_lessons[]
+  lesson_materials lesson_materials[]
+  courses          courses            @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lessons_ibfk_1")
+
+  @@unique([course_id, lesson_number], map: "unique_course_lesson")
+}
+
+model payments {
+  id             Int                      @id @default(autoincrement())
+  enrollment_id  Int
+  amount_paid    Decimal                  @db.Decimal(10, 2)
+  payment_method payments_payment_method? @default(cash)
+  payment_date   DateTime?                @default(now()) @db.DateTime(0)
+  note           String?                  @db.VarChar(255)
+  created_at     DateTime?                @default(now()) @db.Timestamp(0)
+  enrollments    enrollments              @relation(fields: [enrollment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_ibfk_1")
+
+  @@index([enrollment_id], map: "enrollment_id")
+  @@index([payment_date], map: "idx_payment_date")
+}
+
+model rooms {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique(map: "room_name") @db.VarChar(50)
+  capacity   Int?
+  note       String?   @db.VarChar(255)
+  is_active  Boolean   @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+}
+
+model student_details {
+  id           Int       @id @default(autoincrement())
+  user_id      Int       @unique(map: "user_id")
+  student_code String    @unique(map: "student_code") @db.VarChar(20)
+  dob          DateTime? @db.Date
+  parent_name  String?   @db.VarChar(100)
+  parent_phone String?   @db.VarChar(20)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @db.Timestamp(0)
+  users        users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "student_details_ibfk_1")
+
+  @@index([student_code], map: "idx_student_code")
+}
+
+model teacher_details {
+  id               Int       @id @default(autoincrement())
+  user_id          Int       @unique(map: "user_id")
+  specialization   String?   @db.VarChar(100)
+  degree           String?   @db.VarChar(100)
+  bio              String?   @db.Text
+  rate_per_session Decimal?  @db.Decimal(10, 2)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  updated_at       DateTime? @default(now()) @db.Timestamp(0)
+  users            users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "teacher_details_ibfk_1")
+}
+
+model users {
+  id              Int              @id @default(autoincrement())
+  full_name       String           @db.VarChar(100)
+  email           String           @unique(map: "email") @db.VarChar(100)
+  password        String           @db.VarChar(255)
+  codeChangePass  String?          @db.VarChar(10)
+  codeChangePass_expires_at DateTime? @db.Timestamp(0)
+  codeChangePass_attempts   Int?      @default(0)
+  phone           String?          @db.VarChar(20)
+  avatar_url      String?          @db.VarChar(500)
+  role            users_role       @default(student)
+  status          users_status?    @default(active)
+  refresh_token   String?          @db.Text
+  referral_code   String?          @unique(map: "referral_code") @db.VarChar(20)
+  created_at      DateTime?        @default(now()) @db.Timestamp(0)
+  updated_at      DateTime?        @default(now()) @db.Timestamp(0)
+  attendance      attendance[]
+  classes         classes[]
+  enrollments     enrollments[]
+  student_details student_details?
+  teacher_details teacher_details?
+  course_registrations course_registrations[]
+  registration_notes   registration_notes[]
+  waitlist             waitlist[]
+  reviews              reviews[]
+  exam_submissions     exam_submissions[]
+
+  @@index([email], map: "idx_user_email")
+  @@index([role], map: "idx_user_role")
+}
+
+model course_registrations {
+  id             Int                            @id @default(autoincrement())
+  course_id      Int
+  full_name      String                         @db.VarChar(100)
+  email          String                         @db.VarChar(100)
+  phone          String                         @db.VarChar(20)
+  note           String?                        @db.Text
+  status         course_registrations_status?   @default(pending)
+  reject_reason  String?                        @db.VarChar(255)
+  source         course_registrations_source?   @default(other)
+  assigned_to    Int?
+  follow_up_date DateTime?                      @db.Date
+  referred_by_code String?                      @db.VarChar(20)
+  created_at     DateTime?                      @default(now()) @db.Timestamp(0)
+  updated_at     DateTime?                      @default(now()) @db.Timestamp(0)
+  courses        courses                        @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_registration_course")
+  users          users?                         @relation(fields: [assigned_to], references: [id], onUpdate: NoAction, map: "fk_registration_assignee")
+  registration_notes registration_notes[]
+
+  @@index([course_id], map: "idx_registration_course")
+  @@index([status], map: "idx_registration_status")
+}
+
+model class_schedules {
+  id           Int       @id @default(autoincrement())
+  class_id     Int
+  session_date DateTime  @db.Date
+  start_time   DateTime  @db.Time(0)
+  end_time     DateTime  @db.Time(0)
+  room         String?   @default("Phòng 1") @db.VarChar(50)
+  note         String?   @db.VarChar(255)
+  created_at   DateTime? @default(now()) @db.Timestamp(0)
+  updated_at   DateTime? @default(now()) @db.Timestamp(0)
+  classes      classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_schedule_class")
+
+  @@index([class_id], map: "class_id")
+  @@index([session_date], map: "idx_session_date")
+}
+
+model activity_logs {
+  id          Int       @id @default(autoincrement())
+  user_id     Int?
+  user_role   String?   @db.VarChar(20)
+  action      String    @db.VarChar(100)
+  entity_type String?   @db.VarChar(50)
+  entity_id   Int?
+  meta        Json?
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([action], map: "idx_activity_action")
+  @@index([user_id], map: "idx_activity_user")
+}
+
+model registration_notes {
+  id                   Int                  @id @default(autoincrement())
+  registration_id      Int
+  created_by           Int?
+  note                 String               @db.Text
+  created_at           DateTime?            @default(now()) @db.Timestamp(0)
+  course_registrations course_registrations @relation(fields: [registration_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_note_registration")
+  users                users?               @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "fk_note_author")
+
+  @@index([registration_id], map: "idx_note_registration")
+}
+
+model refunds {
+  id            Int         @id @default(autoincrement())
+  enrollment_id Int
+  amount        Decimal     @db.Decimal(10, 2)
+  reason        String?     @db.VarChar(255)
+  refunded_at   DateTime?   @default(now()) @db.Timestamp(0)
+  created_at    DateTime?   @default(now()) @db.Timestamp(0)
+  enrollments   enrollments @relation(fields: [enrollment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_refund_enrollment")
+
+  @@index([enrollment_id], map: "idx_refund_enrollment")
+}
+
+model waitlist {
+  id         Int       @id @default(autoincrement())
+  student_id Int
+  class_id   Int
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  users      users     @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_waitlist_student")
+  classes    classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_waitlist_class")
+
+  @@unique([student_id, class_id], map: "unique_waitlist_student_class")
+  @@index([class_id], map: "idx_waitlist_class")
+}
+
+model reviews {
+  id         Int       @id @default(autoincrement())
+  student_id Int
+  class_id   Int
+  rating     Int
+  comment    String?   @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  users      users     @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_review_student")
+  classes    classes   @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_review_class")
+
+  @@unique([student_id, class_id], map: "unique_review_student_class")
+  @@index([class_id], map: "idx_review_class")
+}
+
+model exams {
+  id               Int      @id @default(autoincrement())
+  course_id        Int
+  title            String   @db.VarChar(150)
+  description      String?  @db.Text
+  duration_minutes Int?
+  is_active        Boolean  @default(true)
+  created_at       DateTime? @default(now()) @db.Timestamp(0)
+  updated_at       DateTime? @default(now()) @db.Timestamp(0)
+  courses          courses  @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_exam_course")
+  exam_questions   exam_questions[]
+  exam_submissions exam_submissions[]
+
+  @@index([course_id], map: "idx_exam_course")
+}
+
+model exam_questions {
+  id            Int      @id @default(autoincrement())
+  exam_id       Int
+  question_text String   @db.Text
+  score         Decimal  @default(1.00) @db.Decimal(5, 2)
+  order_index   Int      @default(0)
+  exams         exams    @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_question_exam")
+  exam_choices  exam_choices[]
+  submission_answers submission_answers[]
+
+  @@index([exam_id], map: "idx_question_exam")
+}
+
+model exam_choices {
+  id             Int             @id @default(autoincrement())
+  question_id    Int
+  choice_text    String          @db.VarChar(500)
+  is_correct     Boolean         @default(false)
+  order_index    Int             @default(0)
+  exam_questions exam_questions  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_choice_question")
+  submission_answers submission_answers[]
+
+  @@index([question_id], map: "idx_choice_question")
+}
+
+model exam_submissions {
+  id           Int      @id @default(autoincrement())
+  exam_id      Int
+  student_id   Int
+  score        Decimal  @db.Decimal(5, 2)
+  submitted_at DateTime @default(now()) @db.Timestamp(0)
+  exams        exams    @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_submission_exam")
+  users        users    @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_submission_student")
+  submission_answers submission_answers[]
+
+  @@unique([exam_id, student_id], map: "unique_submission_exam_student")
+}
+
+model submission_answers {
+  id               Int              @id @default(autoincrement())
+  submission_id    Int
+  question_id      Int
+  choice_id        Int?
+  exam_submissions exam_submissions @relation(fields: [submission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_answer_submission")
+  exam_questions   exam_questions   @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_answer_question")
+  exam_choices     exam_choices?    @relation(fields: [choice_id], references: [id], onUpdate: NoAction, map: "fk_answer_choice")
+
+  @@index([submission_id], map: "idx_answer_submission")
+}
+
+model certificates {
+  id                Int         @id @default(autoincrement())
+  enrollment_id     Int         @unique(map: "unique_certificate_enrollment")
+  certificate_code  String      @unique(map: "unique_certificate_code") @db.VarChar(30)
+  issued_at         DateTime    @default(now()) @db.Timestamp(0)
+  created_at        DateTime?   @default(now()) @db.Timestamp(0)
+  enrollments       enrollments @relation(fields: [enrollment_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_certificate_enrollment")
+}
+
+model vouchers {
+  id             Int                    @id @default(autoincrement())
+  code           String                 @unique(map: "unique_voucher_code") @db.VarChar(30)
+  discount_type  vouchers_discount_type @default(fixed)
+  discount_value Decimal                @db.Decimal(10, 2)
+  max_uses       Int?
+  used_count     Int                    @default(0)
+  valid_from     DateTime?              @db.Date
+  valid_to       DateTime?              @db.Date
+  is_active      Boolean                @default(true)
+  created_at     DateTime?              @default(now()) @db.Timestamp(0)
+  enrollments    enrollments[]
+}
+
+enum vouchers_discount_type {
+  percent
+  fixed
+}
+
+enum course_registrations_source {
+  facebook
+  zalo
+  walkin
+  referral
+  other
+}
+
+enum payments_payment_method {
+  cash
+  transfer
+}
+
+enum enrollments_status {
+  active
+  dropped
+  completed
+}
+
+enum attendance_status {
+  present
+  absent
+  late
+}
+
+enum class_lessons_status {
+  pending
+  completed
+  skipped
+}
+
+enum users_role {
+  admin
+  teacher
+  student
+}
+
+enum classes_status {
+  upcoming
+  ongoing
+  completed
+  cancelled
+}
+
+enum users_status {
+  active
+  inactive
+}
+
+enum course_registrations_status {
+  pending
+  approved
+  rejected
+}

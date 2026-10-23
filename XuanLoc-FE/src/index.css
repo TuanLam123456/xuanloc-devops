@@ -1,0 +1,24 @@
+/* Custom animation delay & smooth hover */
+:root {
+  --animate-duration: 0.8s;
+  --animate-delay: 0.15s;
+}
+
+/* Hiệu ứng hover nổi nhẹ cho các card */
+.hover-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Tôn trọng tuỳ chọn giảm chuyển động của người dùng - dừng animation lặp vô hạn (vd. icon globe ở Hero) */
+@media (prefers-reduced-motion: reduce) {
+  .animate__animated {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
