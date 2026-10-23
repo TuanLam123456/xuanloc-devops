@@ -13,6 +13,7 @@
 *.cfg       text eol=lf
 *.ini       text eol=lf
 .env*       text eol=lf
+*.sql       text eol=lf
 Dockerfile  text eol=lf
 Jenkinsfile text eol=lf
 
