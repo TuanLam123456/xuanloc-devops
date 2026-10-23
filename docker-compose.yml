@@ -1,0 +1,113 @@
+# Chạy toàn bộ hệ thống Xuân Lộc trên Docker Desktop (local)
+#   docker compose up -d --build
+# Web: http://localhost:3000  |  API: http://localhost:3069/api/health
+# Cần 2 file .env (không commit): .env ở thư mục gốc (mật khẩu MySQL) và XuanLoc-BE/.env (JWT, email...)
+
+name: xuanloc
+
+services:
+  # ---------- MySQL: dữ liệu lưu trong volume mysql-data ----------
+  mysql:
+    image: mysql:8.4
+    container_name: xuanloc-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      # Dùng trong init/02-exporter-user.sh để tạo user cho mysqld-exporter
+      MYSQL_EXPORTER_PASSWORD: ${MYSQL_EXPORTER_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # Lần chạy đầu tiên (volume còn trống) MySQL tự nạp các file .sql trong thư mục này
+      - ./XuanLoc-BE/database/init:/docker-entrypoint-initdb.d:ro
+    # Không publish port: chỉ backend trong cùng network mới kết nối được
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ---------- Backend: Express API ----------
+  backend:
+    build: ./XuanLoc-BE
+    container_name: xuanloc-backend
+    restart: unless-stopped
+    # Secret (JWT, email, tài khoản ngân hàng) lấy từ file .env của BE
+    env_file:
+      - ./XuanLoc-BE/.env
+    # Các biến dưới đây ghi đè giá trị cùng tên trong env_file, cho phù hợp môi trường Docker
+    environment:
+      NODE_ENV: production
+      PORT: 3069
+      TZ: Asia/Ho_Chi_Minh
+      TRUST_PROXY: 0
+      # Link đầy đủ của ảnh avatar trả về cho trình duyệt
+      APP_URL: http://localhost:3069
+      # Host là tên service "mysql" trong network của compose, không phải localhost
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      FRONTEND_URLS: http://localhost:3000
+    ports:
+      - "3069:3069"
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ---------- Frontend: React build + nginx ----------
+  frontend:
+    build:
+      context: ./XuanLoc-FE
+      args:
+        # Trình duyệt gọi API trực tiếp qua port đã publish của backend
+        VITE_API_URL: http://localhost:3069/api
+    container_name: xuanloc-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  # ---------- Exporter cho Prometheus (xem thư mục monitoring/) ----------
+  # Trạng thái MySQL: kết nối, truy vấn/giây, slow query, buffer pool...
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.21.0
+    container_name: xuanloc-mysqld-exporter
+    restart: unless-stopped
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=exporter
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: ${MYSQL_EXPORTER_PASSWORD}
+    ports:
+      - "9104:9104"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Phần cứng máy chạy app: CPU, RAM, disk, load...
+  # Trên Docker Desktop số liệu là của máy ảo Linux chạy Docker, không phải Windows.
+  # Lên server Linux sẽ đổi sang network_mode: host để đo đúng card mạng của máy.
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    container_name: xuanloc-node-exporter
+    restart: unless-stopped
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - "9100:9100"
+
+volumes:
+  mysql-data:
+  uploads-data:

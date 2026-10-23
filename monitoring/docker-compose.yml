@@ -1,0 +1,50 @@
+# Hệ thống giám sát: Prometheus (thu thập số liệu) + Grafana (hiển thị dashboard)
+#   cd monitoring && docker compose up -d
+# Prometheus: http://localhost:9090  |  Grafana: http://localhost:3001
+# Cần chạy docker-compose.yml của app trước (có node-exporter và mysqld-exporter)
+# Cần file monitoring/.env (không commit), tạo từ monitoring/.env.example
+
+name: xuanloc-monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    container_name: xuanloc-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # Giữ số liệu 15 ngày rồi tự xoá để không đầy ổ đĩa
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    # Cho phép container gọi về máy chủ qua tên host.docker.internal (cần trên Linux, Docker Desktop có sẵn)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    container_name: xuanloc-grafana
+    restart: unless-stopped
+    environment:
+      # Tài khoản admin chỉ được đặt ở lần chạy đầu tiên (sau đó lưu trong volume grafana-data)
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      # Datasource + dashboard được tạo tự động từ file (provisioning)
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    ports:
+      # Port 3000 local đã dùng cho frontend nên Grafana ra port 3001
+      - "3001:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:
+  grafana-data:

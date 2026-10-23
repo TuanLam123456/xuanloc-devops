@@ -1,0 +1,27 @@
+# Prometheus thu thập số liệu (scrape) từ các exporter theo chu kỳ
+# Bản local: exporter chạy trong docker-compose.yml của app, publish port ra máy -> truy cập qua host.docker.internal
+# Lên server: đổi host.docker.internal thành private IP của VPS app (Ansible sẽ sinh file này)
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Chính Prometheus
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Phần cứng máy chạy app (node-exporter)
+  - job_name: node
+    static_configs:
+      - targets: ["host.docker.internal:9100"]
+        labels:
+          instance: xuanloc-app
+
+  # Trạng thái database MySQL (mysqld-exporter)
+  - job_name: mysql
+    static_configs:
+      - targets: ["host.docker.internal:9104"]
+        labels:
+          instance: xuanloc-mysql

@@ -1,0 +1,23 @@
+# Thư viện được cài lại trong image (bản cài trên Windows không chạy được trên Linux)
+node_modules
+
+# Secret và cấu hình máy local - truyền vào container qua biến môi trường
+.env
+.env.*
+
+# Prisma Client được sinh lại trong image
+src/common/prisma/generated
+
+# Dữ liệu lúc chạy, tài liệu, file khởi tạo DB (MySQL dùng, không phải BE)
+uploads
+docs
+database
+
+# Không cần trong image
+Dockerfile
+.dockerignore
+.gitignore
+README.md
+skills-lock.json
+.claude
+*.log

@@ -1,0 +1,15 @@
+# Thư viện và bản build trên máy local - build lại trong image
+node_modules
+dist
+
+# .env local trỏ API về localhost -> không đưa vào image.
+# .env.production KHÔNG bị loại vì Vite cần nó khi build
+.env
+*.local
+
+# Không cần trong image
+Dockerfile
+.dockerignore
+.gitignore
+README.md
+.claude

@@ -1,0 +1,11 @@
+# Grafana tự nạp mọi file .json trong /etc/grafana/dashboards vào thư mục "Xuân Lộc"
+apiVersion: 1
+
+providers:
+  - name: xuanloc
+    folder: Xuân Lộc
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards
