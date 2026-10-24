@@ -10,6 +10,8 @@
 *.j2        text eol=lf
 *.tf        text eol=lf
 *.hcl       text eol=lf
+*.tftpl     text eol=lf
+*.pub       text eol=lf
 *.cfg       text eol=lf
 *.ini       text eol=lf
 .env*       text eol=lf

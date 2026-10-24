@@ -27,6 +27,8 @@ XuanLoc-BE/uploads/avatars/*
 crash.log
 
 # ===== Ansible =====
+# inventory.ini do Terraform sinh ra (chứa IP thay đổi theo mỗi lần apply)
+ansible/inventory.ini
 *.retry
 .vault_pass*
 

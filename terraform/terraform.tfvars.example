@@ -1,0 +1,9 @@
+# Copy thành terraform.tfvars nếu muốn đổi giá trị mặc định trong variables.tf (file .tfvars không commit)
+
+# aws_region           = "ap-southeast-1"
+# instance_type        = "t3.small"
+# root_volume_size     = 20
+# ssh_private_key_path = "~/.ssh/develops.pem"
+
+# Chỉ cho SSH từ IP nhà bạn (lưu ý: GitHub Actions sẽ không SSH được nữa)
+# ssh_allowed_cidrs = ["203.0.113.10/32"]
