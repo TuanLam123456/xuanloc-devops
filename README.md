@@ -57,3 +57,4 @@ App đã có sẵn 2 exporter trong `docker-compose.yml`: `node-exporter` (phầ
 - [ ] Triển khai thật lên AWS + domain (làm theo [DEPLOY.md](DEPLOY.md))
 
 Cách chạy local: xem README trong `XuanLoc-BE/` và `XuanLoc-FE/`.
+
