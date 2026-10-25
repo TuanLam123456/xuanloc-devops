@@ -10,6 +10,9 @@ const adapter = new PrismaMariaDb({
   password: url.password,
   database: url.pathname.substring(1),
   connectionLimit: 5,
+  // MySQL 8.4+ xác thực bằng caching_sha2_password: kết nối không TLS cần lấy RSA public key từ server.
+  // Thiếu option này thì sau khi MySQL khởi động lại sẽ lỗi ER_CANNOT_RETRIEVE_RSA_KEY (chỉ kết nối trong mạng nội bộ Docker)
+  allowPublicKeyRetrieval: true,
 });
 const prisma = new PrismaClient({
   adapter,
