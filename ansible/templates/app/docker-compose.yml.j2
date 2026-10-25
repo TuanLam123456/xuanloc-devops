@@ -63,7 +63,7 @@ services:
     environment:
       MYSQLD_EXPORTER_PASSWORD: ${MYSQL_EXPORTER_PASSWORD}
     ports:
-      - "{{ private_ip | default(ansible_default_ipv4.address) }}:9104:9104"
+      - "{{ private_ip | default(ansible_facts['default_ipv4']['address']) }}:9104:9104"
     depends_on:
       mysql:
         condition: service_healthy
@@ -77,7 +77,7 @@ services:
     pid: host
     command:
       - --path.rootfs=/host
-      - --web.listen-address={{ private_ip | default(ansible_default_ipv4.address) }}:9100
+      - --web.listen-address={{ private_ip | default(ansible_facts['default_ipv4']['address']) }}:9100
     volumes:
       - /:/host:ro,rslave
 
