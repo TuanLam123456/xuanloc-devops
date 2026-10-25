@@ -4,8 +4,8 @@
 push main ─► GitHub Actions: CI ─► build 2 image ─► Docker Hub ─► SSH vào VPS app: pull + up
 Jenkins (Docker Desktop, bấm tay) ─► build ─► Docker Hub ─► SSH vào VPS app: pull + up
 
-Terraform ─► tạo 2 EC2 + Elastic IP + Security Group ─► sinh ansible/inventory.ini
-Ansible   ─► cài Docker, nginx (HTTPS Cloudflare), deploy app + monitoring
+Terraform (container ubuntu-terraform) ─► tạo 2 EC2 + Elastic IP + Security Group ─► sinh ansible/inventory.ini
+Ansible   (container ubuntu-ansible)   ─► cài Docker, nginx (HTTPS Cloudflare), deploy app + monitoring
 
 VPS app        : nginx ─► frontend :3000, backend :3069 | MySQL | node-exporter, mysqld-exporter
 VPS monitoring : nginx ─► Grafana :3001 | Prometheus (đọc exporter của VPS app qua IP nội bộ)
@@ -17,7 +17,8 @@ VPS monitoring : nginx ─► Grafana :3001 | Prometheus (đọc exporter của 
 | https://api-xuanloc.bui-van-tuan-lam.com | VPS app (API) |
 | https://grafana-xuanloc.bui-van-tuan-lam.com | VPS monitoring |
 
-Mọi lệnh bên dưới chạy trong **Git Bash** ở thư mục gốc repo, Docker Desktop đang bật.
+Terraform và Ansible chạy **trong container Ubuntu** giống cách của khoá học (`devops_04/terraform/doc.md`, `devops_04/ansible/doc.md`).
+Lệnh `docker run` gõ trong **PowerShell** ở thư mục `C:\Projects\xuanloc`, Docker Desktop đang bật.
 
 ---
 
@@ -27,11 +28,12 @@ Thư mục `C:\Users\<bạn>\OneDrive\Desktop\Programming\DevOps\key\` cần có
 
 | File | Dùng cho |
 | --- | --- |
+| `xuanloc-terraform_accessKeys.csv` | `aws configure` trong container Terraform |
 | `develops.pem` | SSH vào 2 VPS (Ansible, GitHub Actions, Jenkins) |
-| `xuanloc-terraform_accessKeys.csv` | Terraform tạo tài nguyên AWS |
 | `bui-van-tuan-lam.com.crt`, `.key` | HTTPS (Cloudflare Origin) |
 | `docker-login` | Docker Hub access token |
-| `xuanloc-vault-pass.txt` | Mật khẩu mở Ansible Vault (tạo ở mục 5.2) |
+
+Container Ansible mount thư mục này (chỉ đọc) vào `/root/key`.
 
 ---
 
@@ -62,13 +64,26 @@ Job `deploy` bị bỏ qua vì `DEPLOY_ENABLED=false` - đúng như mong đợi.
 
 ## 3. Tạo 2 VPS bằng Terraform
 
+Chi tiết từng lệnh: [terraform/doc.md](terraform/doc.md).
+
 ```bash
-./terraform/tf.sh init
-./terraform/tf.sh apply
+# PowerShell
+docker run --name ubuntu-terraform -d -it -e DEBIAN_FRONTEND=noninteractive -v ./:/root/xuanloc ubuntu:24.04
+docker exec -it ubuntu-terraform bash
 ```
 
-Gõ `yes` khi được hỏi. Xong sẽ in ra `app_public_ip`, `monitoring_public_ip` và tự tạo `ansible/inventory.ini`.
-Xem lại bất cứ lúc nào: `./terraform/tf.sh output`. Từ lúc này bắt đầu tính tiền (~1.6 USD/ngày).
+Trong container: cài Terraform + AWS CLI (lần đầu) → `aws configure` (key trong file csv, region `ap-southeast-1`) →
+
+```bash
+cd /root/xuanloc/terraform
+terraform init
+terraform validate
+terraform plan
+terraform apply      # gõ yes
+terraform output     # app_public_ip, monitoring_public_ip
+```
+
+`terraform apply` tự tạo `ansible/inventory.ini` với IP thật. Từ lúc này bắt đầu tính tiền (~1.6 USD/ngày).
 
 ## 4. Cloudflare DNS
 
@@ -84,45 +99,26 @@ Cloudflare → domain `bui-van-tuan-lam.com` → **DNS → Records → Add recor
 
 ## 5. Ansible: cài đặt và deploy
 
-**5.1. Chứng chỉ HTTPS** - copy 2 file `bui-van-tuan-lam.com.crt` và `bui-van-tuan-lam.com.key` vào `ansible/files/`.
-
-**5.2. Mật khẩu Vault** (chỉ làm 1 lần):
+Chi tiết từng lệnh: [ansible/doc.md](ansible/doc.md).
 
 ```bash
-openssl rand -hex 24 > ~/OneDrive/Desktop/Programming/DevOps/key/xuanloc-vault-pass.txt
+# PowerShell
+docker run --name ubuntu-ansible -d -it -e DEBIAN_FRONTEND=noninteractive -e ANSIBLE_CONFIG=/root/xuanloc/ansible/ansible.cfg -v ./:/root/xuanloc -v "$env:USERPROFILE\OneDrive\Desktop\Programming\DevOps\key:/root/key:ro" ubuntu:24.04
+docker exec -it ubuntu-ansible bash
 ```
 
-**5.3. File secret** - copy `ansible/vault.example.yml` thành `ansible/group_vars/all/vault.yml`, điền giá trị thật:
-
-- 3 mật khẩu MySQL: chuỗi chữ + số mới (`openssl rand -hex 16`)
-- 2 khoá JWT: chuỗi mới (`openssl rand -hex 32`), **không** dùng lại khoá ở máy local
-- Email + ngân hàng: lấy từ `XuanLoc-BE/.env`
-- Mật khẩu Grafana: tự đặt
-
-Rồi mã hoá:
+Trong container (lần đầu): cài Ansible từ PPA → copy `develops.pem` vào `~/.ssh` (`chmod 400`) và copy chứng chỉ vào `ansible/files/` → tạo `group_vars/all/vault.yml` từ `vault.example.yml`, điền secret, `ansible-vault encrypt`. Sau đó:
 
 ```bash
-./ansible/run.sh ansible-vault encrypt group_vars/all/vault.yml
-```
-
-Sửa lại sau này: `./ansible/run.sh ansible-vault edit group_vars/all/vault.yml`
-
-**5.4. Thử kết nối** (lần đầu tự build image Ansible, mất vài phút):
-
-```bash
-./ansible/run.sh ansible all -m ping
-```
-
-**5.5. Chạy toàn bộ:**
-
-```bash
-./ansible/run.sh ansible-playbook site.yml
+cd /root/xuanloc/ansible
+ansible all -m ping -i inventory.ini
+ansible-playbook -i inventory.ini site.yml --ask-vault-pass
 ```
 
 Các playbook chạy lần lượt: `01-common` (múi giờ, swap) → `02-docker` → `03-nginx` → `04-deploy-app` → `05-deploy-monitoring`.
-Chạy lại bao nhiêu lần cũng được (idempotent). Chỉ deploy lại app: `./ansible/run.sh ansible-playbook 04-deploy-app.yml`.
+Chạy lại bao nhiêu lần cũng được (idempotent). Kết quả đúng: `failed=0` ở cả 2 máy.
 
-**5.6. Kiểm tra:** mở 3 domain ở đầu trang. Grafana đăng nhập `admin` + mật khẩu trong vault, thư mục **Xuân Lộc** có 2 dashboard.
+**Kiểm tra:** mở 3 domain ở đầu trang. Grafana đăng nhập `admin` + mật khẩu trong vault, thư mục **Xuân Lộc** có 2 dashboard.
 
 ## 6. Bật tự động deploy bằng GitHub Actions
 
@@ -132,16 +128,16 @@ Chạy lại bao nhiêu lần cũng được (idempotent). Chỉ deploy lại ap
 
 ## 7. Jenkins (chạy trên máy bạn)
 
-**7.1. Khởi động:**
+**7.1. Khởi động** (PowerShell):
 
 ```bash
-cd jenkins && docker compose up -d --build && cd ..
+cd jenkins; docker compose up -d --build; cd ..
 ```
 
 **7.2. Cài đặt lần đầu** - mở http://localhost:8090, lấy mật khẩu ban đầu:
 
 ```bash
-MSYS_NO_PATHCONV=1 docker exec xuanloc-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+docker exec xuanloc-jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 ```
 
 Màn hình cài plugin chọn **Select plugins to install → None** (plugin đã cài sẵn trong image) → tạo tài khoản admin.
@@ -164,15 +160,21 @@ Màn hình cài plugin chọn **Select plugins to install → None** (plugin đ�
 
 Jenkins chạy ở máy cá nhân nên GitHub không gọi webhook vào được. Muốn tự chạy khi có commit mới: *Configure → Triggers → Poll SCM* `H/5 * * * *` (khi đó GitHub Actions cũng deploy cùng commit - không lỗi, chỉ chạy 2 lần).
 
-Tắt Jenkins cho nhẹ máy: `cd jenkins && docker compose stop`.
+Tắt Jenkins cho nhẹ máy: `cd jenkins; docker compose stop`.
 
 ## 8. Tắt server khi không dùng
 
 1. Variable `DEPLOY_ENABLED` = `false` (để push code không deploy vào server đã xoá)
-2. Xoá toàn bộ tài nguyên AWS:
+2. Trong container Terraform:
 
 ```bash
-./terraform/tf.sh destroy
+docker start ubuntu-terraform
+docker exec -it ubuntu-terraform bash
+cd /root/xuanloc/terraform && terraform destroy
 ```
 
 Khi tạo lại: chạy lại từ mục 3. Elastic IP mới sẽ khác IP cũ → cập nhật DNS (mục 4), `SSH_HOST` và credential `app-server-host`.
+
+---
+
+**Cách khác (không dùng container Ubuntu):** chạy trong Git Bash bằng 2 script có sẵn `./terraform/tf.sh <lệnh>` và `./ansible/run.sh <lệnh>` - chúng tự chạy Terraform / Ansible trong Docker.

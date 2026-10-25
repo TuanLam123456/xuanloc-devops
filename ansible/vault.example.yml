@@ -1,6 +1,6 @@
 # MẪU file secret - để ngoài group_vars nên Ansible không tự nạp. Cách dùng (xem DEPLOY.md mục 5):
 #   1. Copy thành group_vars/all/vault.yml và điền giá trị thật
-#   2. Mã hoá:  ./ansible/run.sh ansible-vault encrypt group_vars/all/vault.yml
+#   2. Mã hoá (trong container ubuntu-ansible, xem ansible/doc.md):  ansible-vault encrypt group_vars/all/vault.yml
 # vault.yml đã được .gitignore: chỉ nằm trên máy bạn, kể cả khi đã mã hoá
 #
 # Mật khẩu DB chỉ dùng chữ và số (được ghép vào DATABASE_URL). Tạo nhanh: openssl rand -hex 16
