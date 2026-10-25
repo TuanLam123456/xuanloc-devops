@@ -1,0 +1,61 @@
+# Bước 1: chuẩn bị hệ điều hành cho cả 2 máy (gói cơ bản, múi giờ, swap)
+- name: Prepare servers
+  hosts: all
+  become: true
+  # Chưa thu thập thông tin máy ngay, vì máy mới tạo có thể chưa SSH được
+  gather_facts: false
+
+  pre_tasks:
+    # EC2 mới tạo cần vài chục giây mới SSH được
+    - name: Wait until SSH is ready
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+  tasks:
+    - name: Install basic packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - htop
+          - python3-debian
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+        update_cache_retries: 10
+
+    # Dùng timedatectl thay vì module timezone để không phải cài thêm collection
+    - name: Read current timezone
+      ansible.builtin.command: timedatectl show --property=Timezone --value
+      register: current_tz
+      changed_when: false
+
+    - name: Set timezone to {{ server_timezone }}
+      ansible.builtin.command: timedatectl set-timezone {{ server_timezone }}
+      when: current_tz.stdout != server_timezone
+      changed_when: true
+
+    # ---------- Swap ----------
+    # Chỉ tạo khi chưa có /swapfile; tạo xong thì handler bật swap
+    - name: Create swap file, size in MB = {{ swap_size_mb }}
+      ansible.builtin.command: fallocate -l {{ swap_size_mb }}M /swapfile
+      args:
+        creates: /swapfile
+      notify: Enable swap
+
+    - name: Keep swap after reboot
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: /swapfile none swap sw 0 0
+        state: present
+
+  handlers:
+    - name: Enable swap
+      ansible.builtin.shell: |
+        chmod 600 /swapfile
+        mkswap /swapfile
+        swapon /swapfile
+      changed_when: true

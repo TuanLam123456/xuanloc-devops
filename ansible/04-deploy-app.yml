@@ -1,0 +1,85 @@
+# Bước 4: deploy app lên máy app bằng docker compose (image lấy từ Docker Hub)
+- name: Deploy Xuan Loc app
+  hosts: app
+  become: true
+
+  pre_tasks:
+    # Chặn deploy khi quên tạo vault.yml hoặc còn để giá trị mẫu
+    - name: Check secrets are configured
+      ansible.builtin.assert:
+        that:
+          - vault_mysql_root_password is defined
+          - "'change-me' not in [mysql_root_password, mysql_password, mysql_exporter_password, jwt_secret, jwt_refresh_secret]"
+        fail_msg: "Chưa có group_vars/all/vault.yml hoặc còn giá trị 'change-me' - xem DEPLOY.md mục 5"
+        quiet: true
+
+  tasks:
+    - name: Create app directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+      loop:
+        - "{{ app_dir }}"
+        - "{{ app_dir }}/database/init"
+
+    # File SQL khởi tạo DB: MySQL chỉ chạy ở lần đầu (khi volume dữ liệu còn trống)
+    - name: Copy database init files
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../XuanLoc-BE/database/init/"
+        dest: "{{ app_dir }}/database/init/"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Create docker-compose.yml
+      ansible.builtin.template:
+        src: templates/app/docker-compose.yml.j2
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+
+    # 2 file chứa secret -> chỉ user ubuntu đọc được
+    - name: Create .env for docker compose
+      ansible.builtin.template:
+        src: templates/app/app.env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+
+    - name: Create backend.env
+      ansible.builtin.template:
+        src: templates/app/backend.env.j2
+        dest: "{{ app_dir }}/backend.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+
+    - name: Pull images and start containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        pull: always
+        state: present
+        remove_orphans: true
+
+    - name: Wait for backend health check
+      ansible.builtin.uri:
+        url: http://127.0.0.1:3069/api/health
+        status_code: 200
+      register: health
+      retries: 30
+      delay: 5
+      until: health.status == 200
+
+    - name: Wait for frontend
+      ansible.builtin.uri:
+        url: http://127.0.0.1:3000/
+        status_code: 200
+      register: web
+      retries: 10
+      delay: 3
+      until: web.status == 200

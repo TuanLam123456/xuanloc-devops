@@ -1,0 +1,38 @@
+# {{ ansible_managed }}
+# {{ item.server_name }} -> {{ item.upstream }}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ item.server_name }};
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    # Ubuntu 24.04 dùng nginx 1.24 -> khai báo http2 trong listen (cú pháp "http2 on" cần nginx 1.25+)
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name {{ item.server_name }};
+
+    ssl_certificate     /etc/nginx/ssl/{{ ssl_cert_file }};
+    ssl_certificate_key /etc/nginx/ssl/{{ ssl_key_file }};
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    server_tokens off;
+{% if item.client_max_body_size is defined %}
+    client_max_body_size {{ item.client_max_body_size }};
+{% endif %}
+
+    location / {
+        proxy_pass {{ item.upstream }};
+        # Host, X-Real-IP, X-Forwarded-For, X-Forwarded-Proto
+        include proxy_params;
+{% if item.websocket | default(false) %}
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+{% endif %}
+    }
+}

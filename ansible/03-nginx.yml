@@ -1,0 +1,80 @@
+# Bước 3: cài nginx làm reverse proxy + HTTPS bằng chứng chỉ Cloudflare Origin
+# Máy app: xuanloc / api-xuanloc  |  Máy monitoring: grafana-xuanloc (danh sách trong group_vars/<group>.yml)
+- name: Install and configure nginx
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create SSL directory
+      ansible.builtin.file:
+        path: /etc/nginx/ssl
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Copy SSL certificate
+      ansible.builtin.copy:
+        src: "files/{{ ssl_cert_file }}"
+        dest: "/etc/nginx/ssl/{{ ssl_cert_file }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload nginx
+
+    # Private key chỉ root được đọc
+    - name: Copy SSL private key
+      ansible.builtin.copy:
+        src: "files/{{ ssl_key_file }}"
+        dest: "/etc/nginx/ssl/{{ ssl_key_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+      notify: Reload nginx
+
+    - name: Disable default site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload nginx
+
+    - name: Create site configs
+      ansible.builtin.template:
+        src: templates/nginx-site.conf.j2
+        dest: "/etc/nginx/sites-available/{{ item.name }}.conf"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: "{{ nginx_sites }}"
+      loop_control:
+        label: "{{ item.server_name }}"
+      notify: Reload nginx
+
+    - name: Enable site configs
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/{{ item.name }}.conf"
+        dest: "/etc/nginx/sites-enabled/{{ item.name }}.conf"
+        state: link
+      loop: "{{ nginx_sites }}"
+      loop_control:
+        label: "{{ item.server_name }}"
+      notify: Reload nginx
+
+    - name: Ensure nginx is running and starts on boot
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    # Kiểm tra cú pháp trước, sai thì dừng ở đây chứ không reload làm sập web
+    - name: Reload nginx
+      ansible.builtin.shell: nginx -t && systemctl reload nginx
+      changed_when: true

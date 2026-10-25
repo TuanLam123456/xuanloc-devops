@@ -1,0 +1,6 @@
+# Collection cần thêm nếu tự cài ansible-core (Linux/WSL):
+#   ansible-galaxy collection install -r requirements.yml
+# Image Docker của run.sh dùng gói "ansible" đầy đủ nên đã có sẵn, không cần chạy lệnh này.
+collections:
+  - name: community.docker
+    version: ">=5.0.0"

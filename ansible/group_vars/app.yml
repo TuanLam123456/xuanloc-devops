@@ -1,0 +1,10 @@
+# Biến riêng cho máy app: nginx chuyển request từ domain vào container tương ứng
+nginx_sites:
+  - name: xuanloc-web
+    server_name: "{{ app_domain }}"
+    upstream: http://127.0.0.1:3000
+  - name: xuanloc-api
+    server_name: "{{ api_domain }}"
+    upstream: http://127.0.0.1:3069
+    # Backend cho upload avatar tối đa 5MB, nginx mặc định chỉ cho 1MB
+    client_max_body_size: 6m

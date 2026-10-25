@@ -1,0 +1,57 @@
+# {{ ansible_managed }}
+# Bản production trên máy monitoring. Người dùng vào Grafana qua nginx: https://{{ grafana_domain }}
+
+name: xuanloc-monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    container_name: xuanloc-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    # Không mở ra Internet, chỉ dùng nội bộ máy
+    ports:
+      - "127.0.0.1:9090:9090"
+    # Để gọi node-exporter của chính máy này (chạy bằng network host)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    container_name: xuanloc-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: https://{{ grafana_domain }}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3001:3000"
+    depends_on:
+      - prometheus
+
+  # Phần cứng của chính máy monitoring
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    container_name: xuanloc-node-exporter
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+
+volumes:
+  prometheus-data:
+  grafana-data:

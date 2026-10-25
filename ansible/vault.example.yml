@@ -1,0 +1,26 @@
+# MẪU file secret - để ngoài group_vars nên Ansible không tự nạp. Cách dùng (xem DEPLOY.md mục 5):
+#   1. Copy thành group_vars/all/vault.yml và điền giá trị thật
+#   2. Mã hoá:  ./ansible/run.sh ansible-vault encrypt group_vars/all/vault.yml
+# vault.yml đã được .gitignore: chỉ nằm trên máy bạn, kể cả khi đã mã hoá
+#
+# Mật khẩu DB chỉ dùng chữ và số (được ghép vào DATABASE_URL). Tạo nhanh: openssl rand -hex 16
+
+vault_mysql_root_password: change-me
+vault_mysql_password: change-me
+vault_mysql_exporter_password: change-me
+
+# Khoá ký JWT - chuỗi ngẫu nhiên dài, tạo bằng: openssl rand -hex 32
+vault_jwt_secret: change-me
+vault_jwt_refresh_secret: change-me
+
+# Gmail gửi OTP (App Password của Google, không phải mật khẩu đăng nhập)
+vault_email_user: your_email@gmail.com
+vault_email_pass: your_gmail_app_password
+
+# Tài khoản nhận học phí (VietQR)
+vault_bank_bin: "970422"
+vault_bank_account_no: "0000000000"
+vault_bank_account_name: NGUYEN VAN A
+vault_bank_display_name: MB Bank
+
+vault_grafana_admin_password: change-me

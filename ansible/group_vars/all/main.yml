@@ -1,0 +1,47 @@
+# Biến dùng chung cho mọi máy. Secret (mật khẩu, JWT...) nằm trong vault.yml (đã mã hoá)
+
+# ---------- Domain (Cloudflare) ----------
+base_domain: bui-van-tuan-lam.com
+app_domain: "xuanloc.{{ base_domain }}"
+api_domain: "api-xuanloc.{{ base_domain }}"
+grafana_domain: "grafana-xuanloc.{{ base_domain }}"
+
+# Chứng chỉ Cloudflare Origin - đặt 2 file vào ansible/files/ (không commit, đã gitignore)
+ssl_cert_file: bui-van-tuan-lam.com.crt
+ssl_key_file: bui-van-tuan-lam.com.key
+
+# ---------- Docker image (GitHub Actions / Jenkins build và push lên Docker Hub) ----------
+dockerhub_user: lam141000
+backend_image: "{{ dockerhub_user }}/xuanloc-be"
+frontend_image: "{{ dockerhub_user }}/xuanloc-fe"
+image_tag: latest
+
+# ---------- Thư mục trên server ----------
+app_dir: /home/ubuntu/xuanloc
+monitoring_dir: /home/ubuntu/xuanloc-monitoring
+
+# ---------- Hệ thống ----------
+server_timezone: Asia/Ho_Chi_Minh
+# t3.small chỉ có 2 GB RAM -> thêm 2 GB swap để không bị tắt container khi thiếu RAM
+swap_size_mb: 2048
+
+# ---------- Database ----------
+mysql_database: xuan_loc_center
+mysql_user: xuanloc
+
+# ---------- Grafana ----------
+grafana_admin_user: admin
+
+# ---------- Lấy secret từ vault.yml ----------
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_password: "{{ vault_mysql_password }}"
+mysql_exporter_password: "{{ vault_mysql_exporter_password }}"
+jwt_secret: "{{ vault_jwt_secret }}"
+jwt_refresh_secret: "{{ vault_jwt_refresh_secret }}"
+email_user: "{{ vault_email_user }}"
+email_pass: "{{ vault_email_pass }}"
+bank_bin: "{{ vault_bank_bin }}"
+bank_account_no: "{{ vault_bank_account_no }}"
+bank_account_name: "{{ vault_bank_account_name }}"
+bank_display_name: "{{ vault_bank_display_name }}"
+grafana_admin_password: "{{ vault_grafana_admin_password }}"

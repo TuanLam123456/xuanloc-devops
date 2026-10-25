@@ -1,0 +1,7 @@
+# Biến riêng cho máy monitoring
+nginx_sites:
+  - name: xuanloc-grafana
+    server_name: "{{ grafana_domain }}"
+    upstream: http://127.0.0.1:3001
+    # Grafana Live dùng WebSocket
+    websocket: true

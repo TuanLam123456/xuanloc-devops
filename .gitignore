@@ -42,3 +42,6 @@ logs/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Secret của Ansible (kể cả khi đã mã hoá) chỉ để trên máy, không commit
+ansible/group_vars/all/vault.yml

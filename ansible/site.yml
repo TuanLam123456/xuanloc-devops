@@ -1,0 +1,18 @@
+# Chạy toàn bộ: chuẩn bị máy -> Docker -> nginx -> deploy app -> deploy monitoring
+#   ./ansible/run.sh ansible-playbook site.yml
+# Chạy riêng 1 phần, ví dụ chỉ deploy app:
+#   ./ansible/run.sh ansible-playbook 04-deploy-app.yml
+- name: Prepare servers
+  ansible.builtin.import_playbook: 01-common.yml
+
+- name: Install Docker
+  ansible.builtin.import_playbook: 02-docker.yml
+
+- name: Install nginx
+  ansible.builtin.import_playbook: 03-nginx.yml
+
+- name: Deploy app
+  ansible.builtin.import_playbook: 04-deploy-app.yml
+
+- name: Deploy monitoring
+  ansible.builtin.import_playbook: 05-deploy-monitoring.yml

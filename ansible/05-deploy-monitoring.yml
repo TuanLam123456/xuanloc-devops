@@ -1,0 +1,103 @@
+# Bước 5: deploy Prometheus + Grafana lên máy monitoring
+# Prometheus lấy số liệu từ exporter trên máy app qua IP nội bộ (private_ip trong inventory)
+- name: Deploy monitoring stack
+  hosts: monitoring
+  become: true
+
+  vars:
+    app_host: "{{ groups['app'][0] }}"
+    app_private_ip: "{{ hostvars[app_host].private_ip | default(hostvars[app_host].ansible_host) }}"
+
+  pre_tasks:
+    - name: Check Grafana password is configured
+      ansible.builtin.assert:
+        that:
+          - vault_grafana_admin_password is defined
+          - grafana_admin_password != 'change-me'
+        fail_msg: "Chưa có group_vars/all/vault.yml hoặc còn giá trị 'change-me' - xem DEPLOY.md mục 5"
+        quiet: true
+
+  tasks:
+    - name: Create monitoring directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+      loop:
+        - "{{ monitoring_dir }}"
+        - "{{ monitoring_dir }}/prometheus"
+        - "{{ monitoring_dir }}/grafana"
+
+    - name: Create prometheus.yml (scrape targets)
+      ansible.builtin.template:
+        src: templates/monitoring/prometheus.yml.j2
+        dest: "{{ monitoring_dir }}/prometheus/prometheus.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+      # Prometheus chỉ đọc config lúc khởi động -> đổi config thì restart
+      notify: Restart Prometheus
+
+    # Datasource + dashboard Grafana dùng chung với bản local (thư mục monitoring/grafana của repo)
+    - name: Copy Grafana provisioning and dashboards
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../monitoring/grafana/"
+        dest: "{{ monitoring_dir }}/grafana/"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+        directory_mode: "0755"
+
+    - name: Create docker-compose.yml
+      ansible.builtin.template:
+        src: templates/monitoring/docker-compose.yml.j2
+        dest: "{{ monitoring_dir }}/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+
+    - name: Create .env (Grafana admin)
+      ansible.builtin.template:
+        src: templates/monitoring/monitoring.env.j2
+        dest: "{{ monitoring_dir }}/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+
+    - name: Start Prometheus, Grafana, node-exporter
+      community.docker.docker_compose_v2:
+        project_src: "{{ monitoring_dir }}"
+        pull: missing
+        state: present
+        remove_orphans: true
+
+    # Chạy handler (restart Prometheus nếu config đổi) ngay bây giờ, trước khi kiểm tra
+    - name: Apply pending restarts
+      ansible.builtin.meta: flush_handlers
+
+    - name: Wait for Prometheus
+      ansible.builtin.uri:
+        url: http://127.0.0.1:9090/-/ready
+        status_code: 200
+      register: prom
+      retries: 20
+      delay: 3
+      until: prom.status == 200
+
+    - name: Wait for Grafana
+      ansible.builtin.uri:
+        url: http://127.0.0.1:3001/api/health
+        status_code: 200
+      register: grafana
+      retries: 20
+      delay: 3
+      until: grafana.status == 200
+
+  handlers:
+    - name: Restart Prometheus
+      community.docker.docker_compose_v2:
+        project_src: "{{ monitoring_dir }}"
+        services: [prometheus]
+        state: restarted

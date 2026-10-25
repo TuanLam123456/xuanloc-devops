@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+# Prometheus production: đọc số liệu của máy app qua IP nội bộ {{ app_private_ip }}
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Phần cứng: máy app (qua IP nội bộ) và chính máy monitoring
+  - job_name: node
+    static_configs:
+      - targets: ["{{ app_private_ip }}:9100"]
+        labels:
+          instance: xuanloc-app
+      - targets: ["host.docker.internal:9100"]
+        labels:
+          instance: xuanloc-monitoring
+
+  # Trạng thái database MySQL trên máy app
+  - job_name: mysql
+    static_configs:
+      - targets: ["{{ app_private_ip }}:9104"]
+        labels:
+          instance: xuanloc-mysql

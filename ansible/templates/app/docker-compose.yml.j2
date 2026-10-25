@@ -1,0 +1,86 @@
+# {{ ansible_managed }}
+# Bản production trên máy app: dùng image từ Docker Hub thay vì build.
+# GitHub Actions / Jenkins deploy bằng: docker compose pull backend frontend && docker compose up -d
+
+name: xuanloc
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: xuanloc-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_EXPORTER_PASSWORD: ${MYSQL_EXPORTER_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    image: {{ backend_image }}:${IMAGE_TAG:-latest}
+    container_name: xuanloc-backend
+    restart: unless-stopped
+    env_file:
+      - backend.env
+    environment:
+      DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+    # Chỉ nghe ở localhost: người dùng vào qua nginx (https://{{ api_domain }})
+    ports:
+      - "127.0.0.1:3069:3069"
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    image: {{ frontend_image }}:${IMAGE_TAG:-latest}
+    container_name: xuanloc-frontend
+    restart: unless-stopped
+    # Chỉ nghe ở localhost: người dùng vào qua nginx (https://{{ app_domain }})
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - backend
+
+  # Trạng thái MySQL - chỉ mở trên IP nội bộ, Security Group chỉ cho máy monitoring gọi
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.21.0
+    container_name: xuanloc-mysqld-exporter
+    restart: unless-stopped
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=exporter
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: ${MYSQL_EXPORTER_PASSWORD}
+    ports:
+      - "{{ private_ip | default(ansible_default_ipv4.address) }}:9104:9104"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Phần cứng máy app - chạy bằng network của máy thật để đo đúng card mạng, ổ đĩa
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    container_name: xuanloc-node-exporter
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --web.listen-address={{ private_ip | default(ansible_default_ipv4.address) }}:9100
+    volumes:
+      - /:/host:ro,rslave
+
+volumes:
+  mysql-data:
+  uploads-data:
