@@ -17,11 +17,15 @@ Hệ thống quản lý Trung tâm Ngoại ngữ Xuân Lộc, dùng làm đồ �
 | `DEPLOY.md` | **Hướng dẫn cấu hình và triển khai lên AWS từng bước** |
 | `HUONG-DAN-NGHIEP-VU.md` | Hướng dẫn nghiệp vụ theo từng vai trò |
 
-## Địa chỉ triển khai (sắp có)
+## Địa chỉ triển khai
+
+Chạy trên 2 EC2 (AWS Singapore), domain qua Cloudflare (HTTPS, Full strict):
 
 - Web: https://xuanloc.bui-van-tuan-lam.com
-- API: https://api-xuanloc.bui-van-tuan-lam.com
+- API: https://api-xuanloc.bui-van-tuan-lam.com/api/health
 - Grafana: https://grafana-xuanloc.bui-van-tuan-lam.com
+
+Mỗi lần push code vào `XuanLoc-BE/` hoặc `XuanLoc-FE/` trên nhánh `main`, GitHub Actions tự build và deploy; Jenkins (local) tự chạy pipeline sau khi Poll SCM thấy commit mới.
 
 ## Chạy bằng Docker (Docker Desktop)
 
@@ -54,7 +58,7 @@ App đã có sẵn 2 exporter trong `docker-compose.yml`: `node-exporter` (phầ
 - [x] Ansible
 - [x] GitHub Actions
 - [x] Jenkins
-- [ ] Triển khai thật lên AWS + domain (làm theo [DEPLOY.md](DEPLOY.md))
+- [x] Triển khai thật lên AWS + domain (các bước trong [DEPLOY.md](DEPLOY.md))
 
 Cách chạy local: xem README trong `XuanLoc-BE/` và `XuanLoc-FE/`.
 
