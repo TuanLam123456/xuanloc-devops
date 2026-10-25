@@ -6,12 +6,18 @@ Làm theo cách của khoá học (`devops_04/ansible/doc.md`). Khác vài chỗ
 - Mount thêm thư mục **key** (chứa `develops.pem` và chứng chỉ Cloudflare) ở chế độ chỉ đọc
 - `ANSIBLE_CONFIG`: thư mục mount từ Windows bị Ansible coi là "world writable" nên bỏ qua `ansible.cfg` -> chỉ định rõ đường dẫn
 
-## 1. Tạo container (PowerShell, đứng ở `C:\Projects\xuanloc`)
+## 1. Tạo container (PowerShell)
+
+Dùng đường dẫn tuyệt đối `C:\Projects\xuanloc` nên đứng ở thư mục nào chạy cũng đúng
+(`./` sẽ mount nhầm thư mục hiện tại, ví dụ `C:\Users\<bạn>`).
 
 ```bash
-docker run --name ubuntu-ansible -d -it -e DEBIAN_FRONTEND=noninteractive -e ANSIBLE_CONFIG=/root/xuanloc/ansible/ansible.cfg -v ./:/root/xuanloc -v "$env:USERPROFILE\OneDrive\Desktop\Programming\DevOps\key:/root/key:ro" ubuntu:24.04
+docker run --name ubuntu-ansible -d -it -e DEBIAN_FRONTEND=noninteractive -e ANSIBLE_CONFIG=/root/xuanloc/ansible/ansible.cfg -v C:\Projects\xuanloc:/root/xuanloc -v "$env:USERPROFILE\OneDrive\Desktop\Programming\DevOps\key:/root/key:ro" ubuntu:24.04
 
 docker exec -it ubuntu-ansible bash
+
+# Kiểm tra mount đúng: phải thấy ansible, terraform, XuanLoc-BE, XuanLoc-FE...
+ls /root/xuanloc
 ```
 
 ## 2. Cài Ansible (chỉ làm 1 lần, trong container)
@@ -23,6 +29,7 @@ add-apt-repository --yes --update ppa:ansible/ansible
 apt install -y ansible
 
 ansible --version
+# phải thấy: config file = /root/xuanloc/ansible/ansible.cfg
 ansible-galaxy collection list community.docker
 ```
 

@@ -68,7 +68,7 @@ Chi tiết từng lệnh: [terraform/doc.md](terraform/doc.md).
 
 ```bash
 # PowerShell
-docker run --name ubuntu-terraform -d -it -e DEBIAN_FRONTEND=noninteractive -v ./:/root/xuanloc ubuntu:24.04
+docker run --name ubuntu-terraform -d -it -e DEBIAN_FRONTEND=noninteractive -v C:\Projects\xuanloc:/root/xuanloc ubuntu:24.04
 docker exec -it ubuntu-terraform bash
 ```
 
@@ -103,7 +103,7 @@ Chi tiết từng lệnh: [ansible/doc.md](ansible/doc.md).
 
 ```bash
 # PowerShell
-docker run --name ubuntu-ansible -d -it -e DEBIAN_FRONTEND=noninteractive -e ANSIBLE_CONFIG=/root/xuanloc/ansible/ansible.cfg -v ./:/root/xuanloc -v "$env:USERPROFILE\OneDrive\Desktop\Programming\DevOps\key:/root/key:ro" ubuntu:24.04
+docker run --name ubuntu-ansible -d -it -e DEBIAN_FRONTEND=noninteractive -e ANSIBLE_CONFIG=/root/xuanloc/ansible/ansible.cfg -v C:\Projects\xuanloc:/root/xuanloc -v "$env:USERPROFILE\OneDrive\Desktop\Programming\DevOps\key:/root/key:ro" ubuntu:24.04
 docker exec -it ubuntu-ansible bash
 ```
 

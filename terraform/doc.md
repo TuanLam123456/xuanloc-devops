@@ -3,15 +3,19 @@
 Làm theo cách của khoá học (`devops_04/terraform/doc.md`). Khác một chỗ: mount **cả repo** thay vì chỉ thư mục `terraform`,
 vì Terraform ghi file `ansible/inventory.ini` cho Ansible dùng.
 
-## 1. Tạo container (PowerShell, đứng ở `C:\Projects\xuanloc`)
+## 1. Tạo container (PowerShell)
 
 ```bash
-docker run --name ubuntu-terraform -d -it -e DEBIAN_FRONTEND=noninteractive -v ./:/root/xuanloc ubuntu:24.04
+docker run --name ubuntu-terraform -d -it -e DEBIAN_FRONTEND=noninteractive -v C:\Projects\xuanloc:/root/xuanloc ubuntu:24.04
 
 docker exec -it ubuntu-terraform bash
+
+# Kiểm tra mount đúng: phải thấy ansible, terraform, XuanLoc-BE, XuanLoc-FE...
+ls /root/xuanloc
 ```
 
-- `-v ./:/root/xuanloc`: thư mục repo trên máy hiện ra trong container ở `/root/xuanloc`
+- `-v C:\Projects\xuanloc:/root/xuanloc`: thư mục repo trên máy hiện ra trong container ở `/root/xuanloc`.
+  Dùng đường dẫn tuyệt đối nên đứng ở thư mục nào chạy cũng đúng (`./` sẽ mount nhầm thư mục hiện tại)
 - `DEBIAN_FRONTEND=noninteractive`: `apt install` không hỏi múi giờ giữa chừng
 
 ## 2. Cài Terraform + AWS CLI (chỉ làm 1 lần, trong container)
