@@ -64,8 +64,8 @@ jobs:
   build:
     name: Build & push ${{ matrix.service }}
     needs: ci
-    # Pull request chỉ chạy CI, không push image
-    if: github.event_name != 'pull_request'
+    # Pull request chỉ chạy CI, không push image. Chưa cấu hình Docker Hub (DOCKERHUB_USERNAME) thì bỏ qua
+    if: github.event_name != 'pull_request' && vars.DOCKERHUB_USERNAME != ''
     runs-on: ubuntu-latest
     strategy:
       matrix:
