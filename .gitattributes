@@ -12,6 +12,7 @@
 *.hcl       text eol=lf
 *.tftpl     text eol=lf
 *.pub       text eol=lf
+*.txt       text eol=lf
 *.cfg       text eol=lf
 *.ini       text eol=lf
 .env*       text eol=lf

@@ -1,0 +1,26 @@
+# Jenkins local trên Docker Desktop
+#   cd jenkins && docker compose up -d --build
+# Mở http://localhost:8090 (port 8080 trên máy đang bị Apache chiếm)
+
+name: xuanloc-jenkins
+
+services:
+  jenkins:
+    build: .
+    image: xuanloc-jenkins:2.580.1
+    container_name: xuanloc-jenkins
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    # docker.sock trên Docker Desktop thuộc group root (gid 0) -> cho user jenkins vào group này
+    # để dùng được lệnh docker mà không phải chạy Jenkins bằng root
+    group_add:
+      - "0"
+    volumes:
+      # Cấu hình, job, credentials, lịch sử build của Jenkins
+      - jenkins-home:/var/jenkins_home
+      # Dùng Docker của máy để build image
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  jenkins-home:

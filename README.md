@@ -10,6 +10,11 @@ Hệ thống quản lý Trung tâm Ngoại ngữ Xuân Lộc, dùng làm đồ �
 | `XuanLoc-FE/` | Giao diện web React 19 + Vite |
 | `docker-compose.yml` | Chạy MySQL + backend + frontend + exporter trên Docker Desktop |
 | `monitoring/` | Prometheus + Grafana (datasource và dashboard tự nạp) |
+| `terraform/` | Tạo 2 VPS trên AWS (EC2, Elastic IP, Security Group) |
+| `ansible/` | Cài Docker, nginx + HTTPS, deploy app và monitoring lên VPS |
+| `.github/workflows/cicd.yml` | GitHub Actions: CI → build image → deploy |
+| `Jenkinsfile`, `jenkins/` | Pipeline Jenkins và Jenkins chạy local trên Docker Desktop |
+| `DEPLOY.md` | **Hướng dẫn cấu hình và triển khai lên AWS từng bước** |
 | `HUONG-DAN-NGHIEP-VU.md` | Hướng dẫn nghiệp vụ theo từng vai trò |
 
 ## Địa chỉ triển khai (sắp có)
@@ -45,9 +50,10 @@ App đã có sẵn 2 exporter trong `docker-compose.yml`: `node-exporter` (phầ
 - [x] Git & GitHub
 - [x] Docker + docker-compose
 - [x] Monitoring (Prometheus + Grafana)
-- [ ] Terraform (AWS EC2)
-- [ ] Ansible
-- [ ] GitHub Actions
-- [ ] Jenkins
+- [x] Terraform (AWS EC2)
+- [x] Ansible
+- [x] GitHub Actions
+- [x] Jenkins
+- [ ] Triển khai thật lên AWS + domain (làm theo [DEPLOY.md](DEPLOY.md))
 
 Cách chạy local: xem README trong `XuanLoc-BE/` và `XuanLoc-FE/`.
